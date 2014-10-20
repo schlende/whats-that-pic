@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, target-densitydpi=medium-dpi, user-scalable=0"" />
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
+        <title>What's That Pic</title>
+
+        <script type="text/javascript">
+
+            var filePostUri = "http://192.168.1.93:3000/post";
+            var fileUri = "";
+
+            function takePicture(){
+                navigator.camera.getPicture(onSuccess, onFail,
+                    { quality : 25,
+                        destinationType : Camera.DestinationType.FILE_URI,
+                        sourceType : Camera.PictureSourceType.CAMERA,
+                        allowEdit : false,
+                        encodingType: Camera.EncodingType.PNG,
+                        targetWidth: 200,
+                        targetHeight: 300,
+                        saveToPhotoAlbum: false
+                    }
+                );
+            }
+
+            function onSuccess(imageURI) {
+                var image = document.getElementById('myImage');
+                image.src = imageURI;
+                fileUri = imageURI;
+                document.getElementById("uploadBtn").style.display = "block";
+            }
+
+            function uploadPicture(){
+                if(fileUri == ""){
+                    return;
+                }
+
+                var options = new FileUploadOptions();
+                options.fileKey = "file";
+                options.fileName = fileUri.substr(fileUri.lastIndexOf('/')+1);
+                options.mimeType = "image/png";
+
+                var params = { contentType: 'application/json'}
+
+                options.params = params;
+
+                var ft = new FileTransfer();
+                ft.upload(fileUri, encodeURI(filePostUri),
+                    function(response){
+                        navigator.notification.alert("Upload done " + response.responseCode);
+                    },
+                    function(error){
+                        navigator.notification.alert("Error in cleaning up " + error.message);
+                    }
+                , options);
+            }
+
+            function onFail(error) {
+                alert('Failed because: ' + error.code);
+            }
+        </script>
+    </head>
+    <body>
+        <div class="app">
+            <a href="index.html">Back</a>
+            <button onclick="takePicture();">Take Picture</button>
+            <p>
+                <img id="myImage" />
+            </p>
+            <button id="uploadBtn" onclick="uploadPicture();" style="display: none;">Upload Picture</button>
+        </div>
+        <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="js/post.js"></script>
+    </body>
+</html>
+
+
